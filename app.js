@@ -35,23 +35,53 @@ const PALETTE = [
   '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#0ea5e9', '#a855f7'
 ];
 
-const ICONS = [
-  '💡', '💧', '📶', '🏠', '🛒', '🚗', '🛵', '⛽', '🎓', '💊',
-  '👶', '🐱', '🎁', '☕', '🍗', '📱', '👗', '🧾', '🕌', '🛡️',
-  '🎯', '💼', '🧴', '✈️', '🪑', '💇', '📚', '🐟'
-];
+const ICON_COLORS = {
+  'fas fa-lightbulb': '#fbbf24',
+  'fas fa-tint': '#3b82f6',
+  'fas fa-signal': '#06b6d4',
+  'fas fa-home': '#f87171',
+  'fas fa-shopping-cart': '#22c55e',
+  'fas fa-car': '#6366f1',
+  'fas fa-motorcycle': '#8b5cf6',
+  'fas fa-gas-pump': '#f6ad55',
+  'fas fa-graduation-cap': '#a855f7',
+  'fas fa-pills': '#ec4899',
+  'fas fa-baby': '#f97316',
+  'fas fa-cat': '#14b8a6',
+  'fas fa-gift': '#10b981',
+  'fas fa-coffee': '#f59e0b',
+  'fas fa-drumstick-bite': '#84cc16',
+  'fas fa-mobile-alt': '#06b6d4',
+  'fas fa-tshirt': '#84cc16',
+  'fas fa-receipt': '#fbbf24',
+  'fas fa-mosque': '#ec4899',
+  'fas fa-shield-alt': '#6366f1',
+  'fas fa-bullseye': '#f87171',
+  'fas fa-briefcase': '#fbbf24',
+  'fas fa-pump-soap': '#3b82f6',
+  'fas fa-plane': '#f6ad55',
+  'fas fa-chair': '#a855f7',
+  'fas fa-cut': '#3b82f6',
+  'fas fa-book': '#8b5cf6',
+  'fas fa-fish': '#ec4899',
+  'fas fa-exchange-alt': '#6366f1',
+  'fas fa-sign-out-alt': '#f87171',
+  'fas fa-sign-in-alt': '#22c55e'
+};
+
+const ICONS = Object.keys(ICON_COLORS);
 
 const SUGGESTED_POCKETS = [
-  { icon: '💡', name: 'Electricity' },
-  { icon: '💧', name: 'Water' },
-  { icon: '📶', name: 'Internet' },
-  { icon: '🏠', name: 'Rent / Installment' },
-  { icon: '🛒', name: 'Groceries' },
-  { icon: '🚗', name: 'Transport' },
-  { icon: '🎓', name: 'Education' },
-  { icon: '💊', name: 'Health' },
-  { icon: '💇', name: 'Salon' },
-  { icon: '🎁', name: 'Savings' }
+  { icon: 'fas fa-lightbulb', name: 'Electricity', color: '#fbbf24' },
+  { icon: 'fas fa-tint', name: 'Water', color: '#3b82f6' },
+  { icon: 'fas fa-signal', name: 'Internet', color: '#06b6d4' },
+  { icon: 'fas fa-home', name: 'Rent / Installment', color: '#f87171' },
+  { icon: 'fas fa-shopping-cart', name: 'Groceries', color: '#22c55e' },
+  { icon: 'fas fa-car', name: 'Transport', color: '#6366f1' },
+  { icon: 'fas fa-graduation-cap', name: 'Education', color: '#a855f7' },
+  { icon: 'fas fa-pills', name: 'Health', color: '#ec4899' },
+  { icon: 'fas fa-cut', name: 'Salon', color: '#3b82f6' },
+  { icon: 'fas fa-gift', name: 'Savings', color: '#10b981' }
 ];
 
 /* ======================= STATE ======================= */
@@ -182,7 +212,7 @@ function safeColor(c) {
   return PALETTE.includes(String(c)) ? String(c) : PALETTE[0];
 }
 function safeIcon(i) {
-  return ICONS.includes(String(i)) ? String(i) : '💰';
+  return ICONS.includes(String(i)) ? String(i) : 'fas fa-wallet';
 }
 
 function $(id) {
@@ -536,7 +566,7 @@ function renderPockets() {
   if (!pockets.length) {
     wrap.innerHTML = `
       <div class="empty-pockets">
-        <span class="big">💼</span>
+        <span class="big" style="color:#fbbf24"><i class="fas fa-briefcase"></i></span>
         No pockets yet. <b>Create one first</b>, then allocate funds into it
         (for example: allocate Rp 500,000 to <i>Electricity</i>).
         <div style="margin-top:14px">${suggestionChips()}</div>
@@ -550,7 +580,7 @@ function renderPockets() {
 function suggestionChips() {
   return SUGGESTED_POCKETS
     .filter(s => !pockets.some(p => p.name.toLowerCase() === s.name.toLowerCase()))
-    .map(s => `<button class="chip" onclick="addSuggestedPocket('${esc(s.name)}','${esc(s.icon)}')">${esc(s.icon)} ${esc(s.name)}</button>`)
+    .map(s => `<button class="chip" onclick="addSuggestedPocket('${esc(s.name)}','${esc(s.icon)}')"><span class="${esc(s.icon)} fa-fw" style="color:${s.color}"></span> ${esc(s.name)}</button>`)
     .join('');
 }
 
@@ -570,18 +600,19 @@ function pocketCard(p) {
   else if (m.spent > 0) pct = 100;
 
   const barClass = left < 0 ? 'hot' : '';
+  const iconColor = ICON_COLORS[p.icon] || p.color;
 
   return `
   <div class="pocket ${over ? 'over' : ''}" style="--acc:${esc(p.color)}">
     <div class="pocket-top">
-      <span class="pocket-icon">${esc(p.icon)}</span>
+      <span class="pocket-icon" style="color:${iconColor}"><i class="${esc(p.icon)}"></i></span>
       <span class="pocket-name" title="${esc(p.name)}">${esc(p.name)}</span>
       <span class="pocket-actions">
-        <button title="Allocate funds" onclick="focusAllocation('${esc(p.id)}')">⚡</button>
-        <button title="Move funds" onclick="focusTransfer('${esc(p.id)}')">⇄</button>
-        <button title="History" onclick="openHistory('${esc(p.id)}')">🧾</button>
-        <button title="Edit" onclick="openEditPocket('${esc(p.id)}')">✎</button>
-        <button class="del" title="Delete" onclick="deletePocket('${esc(p.id)}')">🗑</button>
+        <button title="Allocate funds" onclick="focusAllocation('${esc(p.id)}')"><i class="fas fa-bolt"></i></button>
+        <button title="Move funds" onclick="focusTransfer('${esc(p.id)}')"><i class="fas fa-exchange-alt"></i></button>
+        <button title="History" onclick="openHistory('${esc(p.id)}')"><i class="fas fa-receipt"></i></button>
+        <button title="Edit" onclick="openEditPocket('${esc(p.id)}')"><i class="fas fa-edit"></i></button>
+        <button class="del" title="Delete" onclick="deletePocket('${esc(p.id)}')"><i class="fas fa-trash"></i></button>
       </span>
     </div>
     <div class="pocket-balance ${over ? 'neg' : ''}">${fmt(b.balance)}</div>
@@ -603,7 +634,7 @@ function renderAllocations() {
 
   fillSelect($('allocPocket'), pocketOptions());
   fillSelect($('transferFrom'), pocketOptions());
-  fillSelect($('transferTo'), pocketOptions().concat([{ value: CASH, label: '💵 Cash outside pockets' }]));
+  fillSelect($('transferTo'), pocketOptions().concat([{ value: CASH, label: 'Cash outside pockets' }]));
   fillSelect($('expensePocket'), pocketOptions({ allowEmpty: true }));
 }
 
@@ -725,11 +756,16 @@ function openEditPocket(id) {
   if (!p) return;
   const b = archive.balances[id];
 
+  const iconLabel = i => {
+    const parts = i.split('-');
+    return parts.slice(2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  };
+
   $('modalTitle').textContent = 'Edit Pocket';
   $('modalBody').innerHTML = `
     <div class="form-row">
       <label>Icon</label>
-      <select id="editIcon">${ICONS.map(i => `<option value="${i}" ${i === p.icon ? 'selected' : ''}>${i}</option>`).join('')}</select>
+      <select id="editIcon">${ICONS.map(i => `<option value="${i}" ${i === p.icon ? 'selected' : ''}><i class="${i}" style="color:${ICON_COLORS[i]}"></i> ${iconLabel(i)}</option>`).join('')}</select>
     </div>
     <div class="form-row">
       <label>Pocket Name</label>
@@ -861,7 +897,7 @@ function addAllocation(ev) {
   $('allocNote').value = '';
   $('allocAmount').focus();
   renderAll();
-  toast('⚡ ' + fmt(amount) + ' → ' + pocketName(id));
+  toast('Allocate: ' + fmt(amount) + ' → ' + pocketName(id));
   return false;
 }
 
@@ -877,7 +913,7 @@ function openAutoAllocate() {
   const left = archive.cash.thisMonth;
   const rows = pockets.map(p => `
     <tr>
-      <td class="alloc-name"><span style="color:${esc(p.color)}">${esc(p.icon)}</span> ${esc(p.name)}</td>
+      <td class="alloc-name"><span style="color:${ICON_COLORS[p.icon] || p.color}"><i class="${esc(p.icon)}"></i></span> ${esc(p.name)}</td>
       <td class="alloc-num">${fmt(archive.thisMonth[p.id] ? archive.thisMonth[p.id].allocated : 0)}</td>
       <td class="alloc-num">${fmt(targetOf(p.id))}</td>
       <td class="alloc-input">
@@ -917,7 +953,7 @@ function openAutoAllocate() {
     </p>
     <div class="form-actions">
       <button class="secondary" onclick="closeModal()">Cancel</button>
-      <button class="success" onclick="runAutoAllocate()">⚡ Allocate Now</button>
+      <button class="success" onclick="runAutoAllocate()"><i class="fas fa-bolt"></i> Allocate Now</button>
     </div>`;
   openModal();
   refreshAutoAllocate();
@@ -979,7 +1015,7 @@ function runAutoAllocate() {
   saveMonth();
   closeModal();
   renderAll();
-  toast('⚡ ' + plan.length + ' pockets allocated, total ' + fmt(total));
+  toast('Auto Allocate: ' + plan.length + ' pockets allocated, total ' + fmt(total));
   return false;
 }
 
@@ -990,7 +1026,7 @@ function openTemplateEditor() {
 
   const rows = pockets.map(p => `
     <tr>
-      <td class="alloc-name"><span style="color:${esc(p.color)}">${esc(p.icon)}</span> ${esc(p.name)}</td>
+      <td class="alloc-name"><span style="color:${ICON_COLORS[p.icon] || p.color}"><i class="${esc(p.icon)}"></i></span> ${esc(p.name)}</td>
       <td class="alloc-input">
         <input type="text" inputmode="numeric" autocomplete="off"
                value="${safeMonthlyTarget(p.monthlyTarget)}" data-tpl="${esc(p.id)}"
@@ -1098,7 +1134,7 @@ function addTransfer(ev) {
 
   const source = from === CASH ? 'Free Cash' : pocketName(from);
   const dest = to === CASH ? 'Free Cash' : pocketName(to);
-  toast('⇄ ' + source + ' → ' + dest);
+  toast('Transfer: ' + source + ' → ' + dest);
   return false;
 }
 
@@ -1241,9 +1277,9 @@ function addExpense(ev) {
 
   toast(
     pocketId
-      ? '🛒 ' + fmt(amount) + ' from ' + pocketName(pocketId)
+      ? 'Expense: ' + fmt(amount) + ' from ' + pocketName(pocketId)
           + ' · ' + shortDate(date)
-      : '🛒 ' + fmt(amount) + ' (no pocket) · ' + shortDate(date),
+      : 'Expense: ' + fmt(amount) + ' (no pocket) · ' + shortDate(date),
     pocketId ? 'ok' : 'warn'
   );
   return false;
@@ -1264,8 +1300,9 @@ function openHistory(id) {
   if (!p) return;
   const b = archive.balances[id];
   const m = archive.thisMonth[id];
+  const iconColor = ICON_COLORS[p.icon] || p.color;
 
-  $('modalTitle').textContent = p.icon + ' History · ' + p.name;
+  $('modalTitle').innerHTML = `<i class="${esc(p.icon)}" style="color:${iconColor}"></i> History · ${esc(p.name)}`;
   $('modalBody').innerHTML = `
     <div class="summary-grid" style="margin-bottom:16px">
       <div class="summary-item"><div class="label">Balance Now</div>
@@ -1296,12 +1333,13 @@ function historyHtml(id) {
 
     d.allocations.forEach(x => {
       if (x.pocketId !== id) return;
-      rows.push({ ico: '⚡', label: 'Funds allocated', sub: x.note, amount: num(x.amount), plus: true });
+      rows.push({ ico: 'fas fa-bolt', icoColor: ICON_COLORS['fas fa-bolt'], label: 'Funds allocated', sub: x.note, amount: num(x.amount), plus: true });
     });
     d.expenses.forEach(x => {
       if (x.pocketId !== id) return;
       rows.push({
-        ico: '🛒',
+        ico: 'fas fa-shopping-cart',
+        icoColor: ICON_COLORS['fas fa-shopping-cart'],
         label: x.name || '(no name)',
         sub: x.date ? shortDate(x.date) : 'no date',
         amount: num(x.amount), plus: false
@@ -1310,14 +1348,16 @@ function historyHtml(id) {
     d.transfers.forEach(t => {
       const v = num(t.amount);
       if (t.from === id) {
+        const isWithdraw = t.type === 'withdraw';
         rows.push({
-          ico: t.type === 'withdraw' ? '📤' : '⇄',
-          label: t.type === 'withdraw' ? 'Withdrawn to free cash' : 'Out → ' + pocketName(t.to),
+          ico: isWithdraw ? 'fas fa-sign-out-alt' : 'fas fa-exchange-alt',
+          icoColor: isWithdraw ? ICON_COLORS['fas fa-sign-out-alt'] : ICON_COLORS['fas fa-exchange-alt'],
+          label: isWithdraw ? 'Withdrawn to free cash' : 'Out → ' + pocketName(t.to),
           sub: t.note, amount: v, plus: false
         });
       }
       if (t.to === id) {
-        rows.push({ ico: '📥', label: 'In from ' + pocketName(t.from), sub: t.note, amount: v, plus: true });
+        rows.push({ ico: 'fas fa-sign-in-alt', icoColor: ICON_COLORS['fas fa-sign-in-alt'], label: 'In from ' + pocketName(t.from), sub: t.note, amount: v, plus: true });
       }
     });
 
@@ -1333,7 +1373,7 @@ function historyHtml(id) {
       <h4>${esc(g.label)}</h4>
       ${g.rows.map(r => `
         <div class="history-item">
-          <span class="ico">${r.ico}</span>
+          <span class="ico" style="color:${r.icoColor}"><i class="${r.ico}"></i></span>
           <span class="label-text">${esc(r.label)}${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span>
           <span class="hist-amount ${r.plus ? 'plus' : 'minus'}">${r.plus ? '+' : '-'} ${fmt(r.amount)}</span>
         </div>`).join('')}
@@ -1678,6 +1718,43 @@ function bindEvents() {
   });
   $('month').addEventListener('change', switchPeriod);
   $('year').addEventListener('change', switchPeriod);
+}
+
+function exportJSON() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    data[key] = localStorage.getItem(key);
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'budget-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      localStorage.clear();
+      Object.entries(data).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
+      });
+      alert('Data imported successfully! Please reload the page to apply the changes.');
+    } catch (error) {
+      alert('Error importing JSON file: ' + error.message);
+    }
+  };
+
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 function init() {

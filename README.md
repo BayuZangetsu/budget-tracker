@@ -70,27 +70,16 @@ at a target of `0` — fill them in from either of those two places.
 
 There is no build step. To change something, edit the file and reload.
 
-### Firefox console tools
+### Export / Import JSON
 
-Your data lives in the browser, so several maintenance tasks have to go
-through the console (F12 → Console). Everything here is **read-only** unless
-stated otherwise.
+For backup or moving data between browsers, use the **Copy & Paste Data Between
+Months** section in the app. Two new buttons:
 
-| File | Runs in | What it does |
-|---|---|---|
-| `salin-localstorage.js` | Firefox console | Copies the whole `localStorage` to the clipboard as JSON |
-| `perbaiki-duplikat.js` | Firefox console | Repairs months that hold identical duplicate copies (asks for confirmation, makes an automatic backup first) |
-| `cek-data.js` | Node.js | `node cek-data.js data-user.json` — verifies real data: the money invariant, rows that need fixing, and whether a rewrite is safe |
+- **Download JSON** — exports the entire `localStorage` as a JSON file to your
+  downloads folder
+- **Import JSON** — restores from a previously downloaded JSON file
 
-The flow to verify or repair your own data:
-
-```
-salin-localstorage.js  ->  save as data-user.json  ->  node cek-data.js data-user.json
-```
-
-If `cek-data.js` reports duplicate months, run `perbaiki-duplikat.js` in the
-console. Note: the real content of a month that was overwritten by a duplicate
-**cannot be recovered**.
+Both are client-side only. No server, no upload, no account.
 
 ### Tests
 

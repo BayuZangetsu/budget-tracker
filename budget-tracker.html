@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Household Budget Tracker — Pockets</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
     <header class="page-head">
-      <h1>💰 Household Budget Tracker</h1>
+      <h1><i class="fas fa-wallet"></i> Household Budget Tracker</h1>
       <p class="subtitle">
         Flow your income into each <b>pocket</b> (envelope), then record spending
         against the pocket it came from. Pocket balances carry over and accumulate
@@ -49,7 +50,7 @@
 
     <!-- ============ SUMMARY ============ -->
     <div class="card">
-      <h2>📊 Summary <span class="tag" id="summaryPeriod"></span></h2>
+      <h2><i class="fas fa-chart-bar"></i> Summary <span class="tag" id="summaryPeriod"></span></h2>
       <div class="summary-grid">
         <div class="summary-item">
           <div class="label">Income This Month</div>
@@ -84,7 +85,7 @@
 
     <!-- ============ POCKETS (ENVELOPES) ============ -->
     <div class="card">
-      <h2>💼 Pockets <span class="tag" id="pocketCount"></span></h2>
+      <h2><i class="fas fa-briefcase"></i> Pockets <span class="tag" id="pocketCount"></span></h2>
       <p class="hint" style="margin-top:-6px;margin-bottom:14px">
         The balance below is <b>accumulated across all months</b> — last month's
         leftovers are still there. The <span class="badge-over inline">Over</span> badge
@@ -95,7 +96,7 @@
 
       <!-- Add pocket -->
       <div class="sub-block">
-        <h3>➕ Add Pocket</h3>
+        <h3><i class="fas fa-plus"></i> Add Pocket</h3>
         <form class="inline-form" id="formPocket" onsubmit="return addPocket(event)">
           <select id="pocketIcon" style="max-width:64px"></select>
           <input type="text" id="pocketName" placeholder="e.g. Electricity, Savings, Water..." style="flex:2" />
@@ -112,15 +113,15 @@
 
       <!-- Allocate funds -->
       <div class="sub-block">
-        <h3>⚡ Allocate Funds to a Pocket <span class="remaining-pill" id="unallocatedPill"></span></h3>
+        <h3><i class="fas fa-bolt"></i> Allocate Funds to a Pocket <span class="remaining-pill" id="unallocatedPill"></span></h3>
         <form class="inline-form" id="formAlloc" onsubmit="return addAllocation(event)">
           <select id="allocPocket" style="flex:1"></select>
           <input type="text" id="allocAmount" placeholder="Amount (Rp)" inputmode="numeric" autocomplete="off" style="flex:1" />
           <input type="text" id="allocNote" placeholder="Note (optional)" style="flex:1.2" />
-          <button type="submit" class="success">⚡ Allocate</button>
+          <button type="submit" class="success"><i class="fas fa-bolt"></i> Allocate</button>
         </form>
         <div class="copy-section" style="margin-top:10px">
-          <button class="primary" onclick="openAutoAllocate()">⚡ Auto Allocate All Pockets (1 click)</button>
+          <button class="primary" onclick="openAutoAllocate()"><i class="fas fa-bolt"></i> Auto Allocate All Pockets (1 click)</button>
           <button class="secondary" onclick="openTemplateEditor()">⚙ Manage Plot Template</button>
         </div>
         <p class="hint">
@@ -134,7 +135,7 @@
 
       <!-- Transfer / withdraw -->
       <div class="sub-block">
-        <h3>⇄ Move Funds Between Pockets</h3>
+        <h3><i class="fas fa-exchange-alt"></i> Move Funds Between Pockets</h3>
         <form class="inline-form" id="formTransfer" onsubmit="return addTransfer(event)">
           <select id="transferFrom" style="flex:1"></select>
           <span class="arrow">→</span>
@@ -143,13 +144,13 @@
           <input type="text" id="transferNote" placeholder="Note (optional)" style="flex:1.2" />
           <button type="submit" class="primary">Move</button>
         </form>
-        <p class="hint">Pick <b>💵 Cash outside pockets</b> as the destination to withdraw funds, or as the source to put cash into a pocket.</p>
+        <p class="hint">Pick <b><i class="fas fa-money-bill-wave" style="color:#22c55e"></i> Cash outside pockets</b> as the destination to withdraw funds, or as the source to put cash into a pocket.</p>
       </div>
     </div>
 
     <!-- ============ INCOME ============ -->
     <div class="card">
-      <h2>💵 Income</h2>
+      <h2><i class="fas fa-money-bill-wave"></i> Income</h2>
       <table>
         <thead>
           <tr>
@@ -169,7 +170,7 @@
 
     <!-- ============ EXPENSES ============ -->
     <div class="card">
-      <h2>🛒 Expenses</h2>
+      <h2><i class="fas fa-shopping-cart"></i> Expenses</h2>
       <table>
         <thead>
           <tr>
@@ -200,7 +201,7 @@
 
     <!-- ============ CHARTS ============ -->
     <div class="card">
-      <h2>📈 Charts</h2>
+      <h2><i class="fas fa-chart-line"></i> Charts</h2>
       <div class="charts">
         <div class="chart-box">
           <canvas id="chartPockets"></canvas>
@@ -216,7 +217,7 @@
 
     <!-- ============ COPY / PASTE ============ -->
     <div class="card">
-      <h2>📋 Copy &amp; Paste Data Between Months</h2>
+      <h2><i class="fas fa-clipboard"></i> Copy &amp; Paste Data Between Months</h2>
       <p class="hint" style="margin-bottom:12px">
         Open this month → <b>Copy Data</b> → switch to another month →
         <b>Paste Data</b>. Pockets that do not exist yet are created automatically.
@@ -224,6 +225,9 @@
       <div class="copy-section">
         <button onclick="copyData()">Copy This Month's Data</button>
         <button class="secondary" onclick="document.getElementById('pasteArea').value=''">Clear</button>
+        <button class="primary" onclick="exportJSON()">Download JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)" />
+        <button class="warning" onclick="document.getElementById('importFile').click()">Import JSON</button>
       </div>
       <textarea id="pasteArea" placeholder="Paste the JSON data here, then click Paste Data..."></textarea>
       <div style="margin-top:10px">
@@ -240,7 +244,7 @@
     <div class="modal">
       <div class="modal-head">
         <h3 id="modalTitle">Title</h3>
-        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body" id="modalBody"></div>
     </div>

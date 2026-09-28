@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Household Budget Tracker — Pockets</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="page-head">
+      <h1>💰 Household Budget Tracker</h1>
+      <p class="subtitle">
+        Flow your income into each <b>pocket</b> (envelope), then record spending
+        against the pocket it came from. Pocket balances carry over and accumulate
+        month after month.
+      </p>
+    </header>
+
+    <!-- ============ PERIOD CONTROLS ============ -->
+    <div class="card card-tight">
+      <div class="controls">
+        <label>Month:
+          <select id="month">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </label>
+        <label>Year:
+          <input type="number" id="year" min="2020" max="2035" style="width:90px" />
+        </label>
+        <button onclick="switchPeriod()">Load Data</button>
+        <button class="secondary" onclick="saveMonth(true)">💾 Save</button>
+        <button class="excel" onclick="exportExcel()">📥 Export to Excel</button>
+      </div>
+    </div>
+
+    <!-- ============ SUMMARY ============ -->
+    <div class="card">
+      <h2>📊 Summary <span class="tag" id="summaryPeriod"></span></h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label">Income This Month</div>
+          <div class="value positive" id="totalIncome">Rp 0</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Expenses This Month</div>
+          <div class="value negative" id="totalExpenses">Rp 0</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Already Allocated</div>
+          <div class="value" id="totalAllocated">Rp 0</div>
+        </div>
+        <div class="summary-item highlight">
+          <div class="label">Not Yet Allocated</div>
+          <div class="value" id="unallocated">Rp 0</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Total Pocket Balance</div>
+          <div class="value" id="totalPocketBalance">Rp 0</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Free Cash (Accumulated)</div>
+          <div class="value" id="freeCash">Rp 0</div>
+        </div>
+      </div>
+      <p class="hint">
+        <b>Not Yet Allocated</b> = income − what already went into pockets − spending
+        recorded with no pocket. If it is negative, the free cash is already spent.
+      </p>
+    </div>
+
+    <!-- ============ POCKETS (ENVELOPES) ============ -->
+    <div class="card">
+      <h2>💼 Pockets <span class="tag" id="pocketCount"></span></h2>
+      <p class="hint" style="margin-top:-6px;margin-bottom:14px">
+        The balance below is <b>accumulated across all months</b> — last month's
+        leftovers are still there. The <span class="badge-over inline">Over</span> badge
+        appears when spending exceeds the pocket's balance.
+      </p>
+
+      <div class="pocket-grid" id="pocketGrid"></div>
+
+      <!-- Add pocket -->
+      <div class="sub-block">
+        <h3>➕ Add Pocket</h3>
+        <form class="inline-form" id="formPocket" onsubmit="return addPocket(event)">
+          <select id="pocketIcon" style="max-width:64px"></select>
+          <input type="text" id="pocketName" placeholder="e.g. Electricity, Savings, Water..." style="flex:2" />
+          <input type="text" id="newPocketTarget" placeholder="Default /mo (optional)" inputmode="numeric" autocomplete="off" style="flex:1" />
+          <button type="submit" class="success">+ Add Pocket</button>
+        </form>
+        <p class="hint">
+          <b>Default /mo</b> is a template: the <b>Auto Allocate</b> button uses it as
+          its target every month. You can leave it blank and fill it in later under
+          <b>Manage Plot Template</b>.
+        </p>
+        <div class="chips" id="pocketSuggestions"></div>
+      </div>
+
+      <!-- Allocate funds -->
+      <div class="sub-block">
+        <h3>⚡ Allocate Funds to a Pocket <span class="remaining-pill" id="unallocatedPill"></span></h3>
+        <form class="inline-form" id="formAlloc" onsubmit="return addAllocation(event)">
+          <select id="allocPocket" style="flex:1"></select>
+          <input type="text" id="allocAmount" placeholder="Amount (Rp)" inputmode="numeric" autocomplete="off" style="flex:1" />
+          <input type="text" id="allocNote" placeholder="Note (optional)" style="flex:1.2" />
+          <button type="submit" class="success">⚡ Allocate</button>
+        </form>
+        <div class="copy-section" style="margin-top:10px">
+          <button class="primary" onclick="openAutoAllocate()">⚡ Auto Allocate All Pockets (1 click)</button>
+          <button class="secondary" onclick="openTemplateEditor()">⚙ Manage Plot Template</button>
+        </div>
+        <p class="hint">
+          Quick way: enter your income, then click <b>Auto Allocate</b>. Every pocket is
+          allocated to its template value at once, with no manual entry per pocket.
+          The modal that appears can be adjusted <b>for this month only</b> — changing
+          <b>Target /mo</b> there does not change the template.
+        </p>
+        <p class="hint">Keep allocating by hand when you want to go above the template, for example <b>Rp 500,000</b> into the <i>Electricity</i> pocket.</p>
+      </div>
+
+      <!-- Transfer / withdraw -->
+      <div class="sub-block">
+        <h3>⇄ Move Funds Between Pockets</h3>
+        <form class="inline-form" id="formTransfer" onsubmit="return addTransfer(event)">
+          <select id="transferFrom" style="flex:1"></select>
+          <span class="arrow">→</span>
+          <select id="transferTo" style="flex:1"></select>
+          <input type="text" id="transferAmount" placeholder="Amount (Rp)" inputmode="numeric" autocomplete="off" style="flex:1" />
+          <input type="text" id="transferNote" placeholder="Note (optional)" style="flex:1.2" />
+          <button type="submit" class="primary">Move</button>
+        </form>
+        <p class="hint">Pick <b>💵 Cash outside pockets</b> as the destination to withdraw funds, or as the source to put cash into a pocket.</p>
+      </div>
+    </div>
+
+    <!-- ============ INCOME ============ -->
+    <div class="card">
+      <h2>💵 Income</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:55%">Source</th>
+            <th class="amount" style="width:30%">Amount (Rp)</th>
+            <th style="width:15%"></th>
+          </tr>
+        </thead>
+        <tbody id="incomeBody"></tbody>
+      </table>
+      <form class="add-row" id="formIncome" onsubmit="return addIncome(event)">
+        <input type="text" id="incomeSource" placeholder="e.g. Salary, Freelance, Bonus..." />
+        <input type="text" id="incomeAmount" placeholder="Amount" inputmode="numeric" autocomplete="off" />
+        <button type="submit" class="success">+ Add</button>
+      </form>
+    </div>
+
+    <!-- ============ EXPENSES ============ -->
+    <div class="card">
+      <h2>🛒 Expenses</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:14%">Date</th>
+            <th style="width:26%">Description</th>
+            <th style="width:26%">Taken From Pocket</th>
+            <th class="amount" style="width:19%">Amount (Rp)</th>
+            <th style="width:15%"></th>
+          </tr>
+        </thead>
+        <tbody id="expenseBody"></tbody>
+      </table>
+      <form class="add-row" id="formExpense" onsubmit="return addExpense(event)">
+        <input type="date" id="expenseDate" class="tgl-form" title="Transaction date (limited to the open month)" />
+        <input type="text" id="expenseName" placeholder="e.g. Electricity token, Shopping..." style="flex:2" />
+        <select id="expensePocket" style="flex:1.4"></select>
+        <input type="text" id="expenseAmount" placeholder="Amount" inputmode="numeric" autocomplete="off" style="flex:1" />
+        <button type="submit" class="success">+ Add</button>
+      </form>
+      <p class="hint">
+        Pick a pocket → that pocket's balance drops automatically. <b>No pocket</b>
+        means the expense came out of free cash.
+        Older expenses with no date get a yellow marker; click one to fill it in.
+        Dates are limited to the month you have open — switch months first if you
+        need to record last month's transactions.
+      </p>
+    </div>
+
+    <!-- ============ CHARTS ============ -->
+    <div class="card">
+      <h2>📈 Charts</h2>
+      <div class="charts">
+        <div class="chart-box">
+          <canvas id="chartPockets"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chartAllocations"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chartMoneyFlow"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ COPY / PASTE ============ -->
+    <div class="card">
+      <h2>📋 Copy &amp; Paste Data Between Months</h2>
+      <p class="hint" style="margin-bottom:12px">
+        Open this month → <b>Copy Data</b> → switch to another month →
+        <b>Paste Data</b>. Pockets that do not exist yet are created automatically.
+      </p>
+      <div class="copy-section">
+        <button onclick="copyData()">Copy This Month's Data</button>
+        <button class="secondary" onclick="document.getElementById('pasteArea').value=''">Clear</button>
+      </div>
+      <textarea id="pasteArea" placeholder="Paste the JSON data here, then click Paste Data..."></textarea>
+      <div style="margin-top:10px">
+        <button class="success" onclick="pasteData()">Paste Data Into This Month</button>
+      </div>
+      <p class="hint">The copied data contains income, expenses, allocations and pocket transfers.</p>
+    </div>
+
+    <p class="footer">Data is saved automatically in your browser (localStorage). Switch month/year any time.</p>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">Title</h3>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

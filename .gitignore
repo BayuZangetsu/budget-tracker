@@ -1,0 +1,16 @@
+# The CodeGraph index -- a generated SQLite database, not source.
+# Ignored because it is large, and any machine can regenerate it
+# with `codegraph init`.
+.codegraph/
+
+# Dumps of the user's real localStorage. NEVER commit these:
+# they are personal financial records.
+/data-user.json
+data-user*.json
+
+# The rest of the usual junk
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+*.swp

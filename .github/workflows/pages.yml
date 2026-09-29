@@ -31,13 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # enablement lets this job switch Pages on by itself. Without it the
-      # very first run fails with "Get Pages site failed" on a repository
-      # that has never had Pages enabled, and someone has to flip the
-      # setting in the UI before the first deploy can succeed.
+      # NOTE: Pages must already be switched on for this repository
+      # (Settings -> Pages -> Source: GitHub Actions). This step cannot do
+      # it itself: with enablement: true it fails with "Resource not
+      # accessible by integration", because the workflow GITHUB_TOKEN is
+      # not allowed to create the Pages site. It is a one-time toggle.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       # Nothing to compile, so the repository root is the artifact.
       - uses: actions/upload-pages-artifact@v3

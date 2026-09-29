@@ -6,7 +6,9 @@ that browser's `localStorage` and is never sent anywhere.
 
 ## Getting started
 
-Open **`index.html`** by double-clicking it. That is the whole install.
+**Live version:** <https://bayuzangetsu.github.io/budget-tracker/>
+
+Or open **`index.html`** by double-clicking it. That is the whole install.
 
 No `npm install`, no server. An internet connection is optional: Chart.js and
 SheetJS are loaded from a CDN, and if that fails the app still works — you
@@ -69,6 +71,19 @@ at a target of `0` — fill them in from either of those two places.
 
 There is no build step. To change something, edit the file and reload.
 
+### Deploying
+
+`.github/workflows/pages.yml` publishes the repository root to GitHub Pages
+after every push to `main`. There is nothing to compile, so the job only
+uploads the files.
+
+Pages must already be switched on for the repository
+(**Settings → Pages → Source: GitHub Actions**). The workflow cannot enable
+it itself — the job's own token is not allowed to create the Pages site.
+
+The entry file is named `index.html` so the site root resolves without a
+redirect.
+
 ### Export / Import JSON
 
 For backup or moving data between browsers, use the **Copy & Paste Data Between
@@ -82,28 +97,15 @@ Both are client-side only. No server, no upload, no account.
 
 ### Tests
 
-9 suites, 887 assertions, no dependencies (`jsdom` is not used — the DOM is
-stubbed by hand).
+There are no automated tests. The suites that used to live here (9 files,
+887 assertions) were removed to keep the repository down to the three files
+the app actually needs.
 
-```bash
-node test-ledger.js      # ledger arithmetic and two-sided balance
-node test-wiring.js      # every id app.js reads exists; every handler resolves
-node test-render.js      # escaping: no injection through a pocket name
-node test-tanggal.js     # the transaction date field, end to end
-node test-periode.js     # the month/year switch guards
-node test-perbaiki.js    # the duplicate detector and the repair script
-node test-jumlah.js      # amount inputs: no broken amount ever becomes Rp 0
-node test-template.js    # the target template and one-click auto allocate
-node test-kontrak.js     # pins the exact localStorage format
-node audit-typo.js       # gate: leftover Indonesian, mangled spellings, non-Latin
-```
-
-Every suite must print `FAIL: 0`, and `audit-typo.js` must print `CLEAN`.
-
-> Stub-based tests are not exhaustive. The `type="number"` defect that
-> silently turned `"1.250.750"` into an empty string was **never** visible
-> from a test — it only showed up in a real browser. For any change that
-> touches an input or a render, still try it by hand.
+That is a deliberate trade, not an oversight — but it has a cost worth
+naming. The `type="number"` defect that silently turned `"1.250.750"` into
+an empty string was never caught by a test; it only surfaced by hand in a
+real browser. **For any change that touches an input or a render, open the
+app and try it.** Checking a change in a real browser is not optional here.
 
 ## Things worth knowing
 

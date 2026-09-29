@@ -6,8 +6,7 @@ that browser's `localStorage` and is never sent anywhere.
 
 ## Getting started
 
-Open **`budget-tracker.html`** by double-clicking it. That is the whole
-install.
+Open **`index.html`** by double-clicking it. That is the whole install.
 
 No `npm install`, no server. An internet connection is optional: Chart.js and
 SheetJS are loaded from a CDN, and if that fails the app still works — you
@@ -64,7 +63,7 @@ at a target of `0` — fill them in from either of those two places.
 
 | File | Contents |
 |---|---|
-| `budget-tracker.html` | Markup only, with inline `onclick` handlers |
+| `index.html` | Markup only, with inline `onclick` handlers |
 | `styles.css` | Styles |
 | `app.js` | All of the logic |
 

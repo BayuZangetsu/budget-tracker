@@ -31,7 +31,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # enablement lets this job switch Pages on by itself. Without it the
+      # very first run fails with "Get Pages site failed" on a repository
+      # that has never had Pages enabled, and someone has to flip the
+      # setting in the UI before the first deploy can succeed.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # Nothing to compile, so the repository root is the artifact.
       - uses: actions/upload-pages-artifact@v3

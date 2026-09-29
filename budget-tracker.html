@@ -98,7 +98,7 @@
       <div class="sub-block">
         <h3><i class="fas fa-plus"></i> Add Pocket</h3>
         <form class="inline-form" id="formPocket" onsubmit="return addPocket(event)">
-          <select id="pocketIcon" style="max-width:64px"></select>
+          <div class="icon-picker" id="pocketIcon" role="group" aria-label="Pocket icon"></div>
           <input type="text" id="pocketName" placeholder="e.g. Electricity, Savings, Water..." style="flex:2" />
           <input type="text" id="newPocketTarget" placeholder="Default /mo (optional)" inputmode="numeric" autocomplete="off" style="flex:1" />
           <button type="submit" class="success">+ Add Pocket</button>

@@ -152,6 +152,69 @@ button.danger:hover { background: var(--danger-dark); }
 }
 .chip:hover { background: #eff6ff; border-color: #bfdbfe; color: var(--primary-dark); }
 
+/* ---------- Icon picker ----------
+   A grid of buttons rather than a <select>: an <option> is a text-only
+   rendering context, so markup inside one is created in the DOM but never
+   enters the layout tree and paints nothing. Each button keeps the colour
+   ICON_COLORS gives that icon, which is what the Unicode emoji did for
+   free (water blue, electricity amber, ...). */
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 6px;
+  padding: 8px;
+  width: 100%;
+  max-width: 460px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+/* In the add form the picker shares a flex row with the name, target and
+   button. Give it a full line of its own instead of squeezing it, so all
+   the icons stay visible without scrolling. */
+.inline-form .icon-picker {
+  flex: 1 1 100%;
+  max-width: none;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+}
+.ip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform .12s, box-shadow .12s, border-color .12s;
+}
+.ip-btn i { pointer-events: none; }
+.ip-btn:hover { transform: translateY(-1px); border-color: #bfdbfe; box-shadow: var(--shadow); }
+.ip-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.ip-btn.on {
+  border-color: currentColor;
+  box-shadow: 0 0 0 2px currentColor inset;
+  background: #fff;
+}
+
+/* ---------- Colour swatches ---------- */
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.sw {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 7px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border);
+  transition: transform .12s, box-shadow .12s;
+}
+.sw:hover { transform: translateY(-1px); }
+.sw:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.sw.on { box-shadow: 0 0 0 2px #334155; }
+
 /* ---------- Summary ---------- */
 .summary-grid {
   display: grid;

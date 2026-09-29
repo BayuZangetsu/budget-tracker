@@ -66,10 +66,51 @@ const ICON_COLORS = {
   'fas fa-fish': '#ec4899',
   'fas fa-exchange-alt': '#6366f1',
   'fas fa-sign-out-alt': '#f87171',
-  'fas fa-sign-in-alt': '#22c55e'
+  'fas fa-sign-in-alt': '#22c55e',
+  'fas fa-wallet': '#2563eb'
 };
 
 const ICONS = Object.keys(ICON_COLORS);
+
+/* Used for the picker's tooltips and screen-reader labels. Deriving this
+   from the class name is not reliable: "fas fa-tint".split('-') yields two
+   parts, so slicing off the first two leaves nothing. */
+const ICON_LABELS = {
+  'fas fa-lightbulb': 'Electricity',
+  'fas fa-tint': 'Water',
+  'fas fa-signal': 'Internet',
+  'fas fa-home': 'Rent / Installment',
+  'fas fa-shopping-cart': 'Groceries',
+  'fas fa-car': 'Transport',
+  'fas fa-motorcycle': 'Motorcycle',
+  'fas fa-gas-pump': 'Fuel',
+  'fas fa-graduation-cap': 'Education',
+  'fas fa-pills': 'Health',
+  'fas fa-baby': 'Childcare',
+  'fas fa-cat': 'Pets',
+  'fas fa-gift': 'Savings',
+  'fas fa-coffee': 'Coffee',
+  'fas fa-drumstick-bite': 'Eating out',
+  'fas fa-mobile-alt': 'Phone / Data',
+  'fas fa-tshirt': 'Clothing',
+  'fas fa-receipt': 'Bills',
+  'fas fa-mosque': 'Zakat / Religious',
+  'fas fa-shield-alt': 'Insurance',
+  'fas fa-bullseye': 'Goals',
+  'fas fa-briefcase': 'Work',
+  'fas fa-pump-soap': 'Soap / Cleaning',
+  'fas fa-plane': 'Travel',
+  'fas fa-chair': 'Furniture',
+  'fas fa-cut': 'Salon',
+  'fas fa-book': 'Books',
+  'fas fa-fish': 'Seafood',
+  'fas fa-exchange-alt': 'Transfer',
+  'fas fa-sign-out-alt': 'Out',
+  'fas fa-sign-in-alt': 'In',
+  'fas fa-wallet': 'Wallet'
+};
+
+const DEFAULT_ICON = 'fas fa-wallet';
 
 const SUGGESTED_POCKETS = [
   { icon: 'fas fa-lightbulb', name: 'Electricity', color: '#fbbf24' },
@@ -212,7 +253,7 @@ function safeColor(c) {
   return PALETTE.includes(String(c)) ? String(c) : PALETTE[0];
 }
 function safeIcon(i) {
-  return ICONS.includes(String(i)) ? String(i) : 'fas fa-wallet';
+  return ICONS.includes(String(i)) ? String(i) : DEFAULT_ICON;
 }
 
 function $(id) {
@@ -641,7 +682,11 @@ function renderAllocations() {
 function pocketOptions({ allowEmpty = false } = {}) {
   const list = pockets.map(p => {
     const s = archive ? archive.balances[p.id].balance : 0;
-    return { value: p.id, label: `${p.icon} ${p.name} (${fmtShort(s)})` };
+    /* Text only. A <select> cannot show a Font Awesome glyph or a colour:
+       an <option> is a text-only rendering context, so anything marked up
+       inside one never enters the layout tree. The icon is therefore not
+       part of this label -- the pocket cards carry the coloured icon. */
+    return { value: p.id, label: `${p.name} · ${fmtShort(s)}` };
   });
   if (allowEmpty) list.unshift({ value: '', label: '— No pocket (free cash) —' });
   if (!list.length && !allowEmpty) list.push({ value: '', label: '— No pockets yet —' });
@@ -711,8 +756,78 @@ function markOver() {
 
 /* ======================= POCKET CRUD ======================= */
 
-function fillIconSelect() {
-  $('pocketIcon').innerHTML = ICONS.map(i => `<option value="${i}">${i}</option>`).join('');
+/* ---------------------------------------------------------------------
+   The icon picker
+
+   This is deliberately NOT a <select>. An <option> is a text-only
+   rendering context: markup placed inside one is parsed into the DOM but
+   never enters the layout tree, so the glyph is created and then paints
+   nothing. That is why the old <select> either showed the raw class name
+   ("fas fa-tint") or, once an <i> was added, showed nothing at all.
+
+   So the picker is a grid of buttons. Each one carries its icon in the
+   colour ICON_COLORS assigns to it -- water blue, electricity amber, and
+   so on -- which is what the Unicode emoji used to do for free.
+   ------------------------------------------------------------------ */
+function iconButtons(selected) {
+  const cur = safeIcon(selected);
+  return ICONS.map(i => {
+    const label = ICON_LABELS[i] || i;
+    return `<button type="button" class="ip-btn${i === cur ? ' on' : ''}" data-icon="${i}"`
+      + ` title="${esc(label)}" aria-label="${esc(label)}"`
+      + ` aria-pressed="${i === cur}" style="color:${ICON_COLORS[i]}">`
+      + `<i class="${i}" aria-hidden="true"></i></button>`;
+  }).join('');
+}
+
+/* Read the chosen icon. The value lives on the container's data-icon
+   attribute, so it survives the grid being re-rendered. */
+function pickedIcon(pickerId) {
+  const el = $(pickerId);
+  if (!el) return DEFAULT_ICON;
+  return ICONS.includes(el.dataset.icon) ? el.dataset.icon : DEFAULT_ICON;
+}
+
+/* Move the highlight onto a button without rebuilding the grid, so the
+   icons do not flicker on every click. */
+function setPickedIcon(pickerId, icon) {
+  const el = $(pickerId);
+  if (!el) return;
+  const next = safeIcon(icon);
+  el.dataset.icon = next;
+  el.querySelectorAll('.ip-btn').forEach(b => {
+    const on = b.dataset.icon === next;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+
+function renderIconPicker() {
+  const el = $('pocketIcon');
+  if (!el) return;
+  if (!ICONS.includes(el.dataset.icon)) el.dataset.icon = DEFAULT_ICON;
+  el.innerHTML = iconButtons(el.dataset.icon);
+}
+
+/* The accent colour works the same way: a grid of swatches, not a
+   <select>. A <span> inside an <option> has no box, so the old swatch
+   square was invisible and only the hex text showed. */
+function pickedColor(swId) {
+  const el = $(swId);
+  if (!el) return PALETTE[0];
+  return safeColor(el.dataset.color);
+}
+
+function setPickedColor(swId, color) {
+  const el = $(swId);
+  if (!el) return;
+  const next = safeColor(color);
+  el.dataset.color = next;
+  el.querySelectorAll('.sw').forEach(b => {
+    const on = b.dataset.color === next;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
 }
 
 function addPocket(ev) {
@@ -730,7 +845,7 @@ function addPocket(ev) {
   pockets.push({
     id: uid(),
     name,
-    icon: safeIcon($('pocketIcon').value),
+    icon: pickedIcon('pocketIcon'),
     color: nextColor(),
     monthlyTarget: safeMonthlyTarget($('newPocketTarget').value)
   });
@@ -756,16 +871,11 @@ function openEditPocket(id) {
   if (!p) return;
   const b = archive.balances[id];
 
-  const iconLabel = i => {
-    const parts = i.split('-');
-    return parts.slice(2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  };
-
   $('modalTitle').textContent = 'Edit Pocket';
   $('modalBody').innerHTML = `
     <div class="form-row">
       <label>Icon</label>
-      <select id="editIcon">${ICONS.map(i => `<option value="${i}" ${i === p.icon ? 'selected' : ''}><i class="${i}" style="color:${ICON_COLORS[i]}"></i> ${iconLabel(i)}</option>`).join('')}</select>
+      <div class="icon-picker" id="editIcon" data-icon="${esc(p.icon)}" role="group" aria-label="Pocket icon">${iconButtons(p.icon)}</div>
     </div>
     <div class="form-row">
       <label>Pocket Name</label>
@@ -773,7 +883,11 @@ function openEditPocket(id) {
     </div>
     <div class="form-row">
       <label>Color</label>
-      <select id="editColor">${PALETTE.map(c => `<option value="${c}" ${c === p.color ? 'selected' : ''}><span style="color:${c}">■</span> ${c}</option>`).join('')}</select>
+      <div class="swatches" id="editColor" data-color="${esc(p.color)}" role="group" aria-label="Pocket color">
+        ${PALETTE.map(c => `<button type="button" class="sw${c === p.color ? ' on' : ''}" data-color="${c}"`
+          + ` title="${c}" aria-label="${c}" aria-pressed="${c === p.color}"`
+          + ` style="background:${c}"></button>`).join('')}
+      </div>
     </div>
     <div class="form-row">
       <label>Monthly Plot Template (Rp)</label>
@@ -800,8 +914,8 @@ function saveEditPocket(id) {
   const name = $('editName').value.trim();
   if (!name) return toast('Name cannot be empty', 'warn');
   p.name = name;
-  p.icon = safeIcon($('editIcon').value);
-  p.color = safeColor($('editColor').value);
+  p.icon = pickedIcon('editIcon');
+  p.color = pickedColor('editColor');
   p.monthlyTarget = safeMonthlyTarget($('editMonthlyTarget').value);
   savePockets();
   closeModal();
@@ -1718,6 +1832,18 @@ function bindEvents() {
   });
   $('month').addEventListener('change', switchPeriod);
   $('year').addEventListener('change', switchPeriod);
+
+  /* Delegated so it covers both the add form's picker and the one inside
+     the edit modal, which is created and destroyed on every open. */
+  document.addEventListener('click', e => {
+    const icon = e.target.closest('.ip-btn');
+    if (icon) {
+      setPickedIcon(icon.closest('.icon-picker').id, icon.dataset.icon);
+      return;
+    }
+    const sw = e.target.closest('.sw');
+    if (sw) setPickedColor(sw.closest('.swatches').id, sw.dataset.color);
+  });
 }
 
 function exportJSON() {
@@ -1762,7 +1888,7 @@ function init() {
   $('month').value = now.getMonth() + 1;
   $('year').value = now.getFullYear();
 
-  fillIconSelect();
+  renderIconPicker();
   loadPockets();
   bindEvents();
   loadMonth();
